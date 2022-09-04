@@ -357,18 +357,10 @@ def main():
         all_segment_ids = torch.tensor(
             [f.segment_ids for f in train_features], dtype=torch.long
         )
-        all_start_positions = torch.tensor(
-            [f.start_position for f in train_features], dtype=torch.long
-        )
-        all_end_positions = torch.tensor(
-            [f.end_position for f in train_features], dtype=torch.long
-        )
         train_data = TensorDataset(
             all_input_ids,
             all_input_mask,
             all_segment_ids,
-            all_start_positions,
-            all_end_positions,
         )
         if args.local_rank == -1:
             train_sampler = RandomSampler(train_data)
