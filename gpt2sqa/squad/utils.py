@@ -44,7 +44,6 @@ def read_data_examples(input_file, is_training):
                 qas_id = qa["id"]
                 question_text = qa["question"]
                 orig_answer_text = None
-                is_impossible = False
                 if is_training:
                     if len(qa["answers"]) != 1:
                         raise ValueError("For training, each question should have exactly 1 answer.")
