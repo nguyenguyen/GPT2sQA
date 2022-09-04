@@ -43,7 +43,7 @@ from gpt2sqa.tokenization import GPT2Tokenizer
 from gpt2sqa.squad.squad_example import InputFeatures
 from gpt2sqa.squad.utils import (
     convert_examples_to_features,
-    read_squad_examples,
+    read_data_examples,
     get_final_text,
     write_predictions,
     _check_is_max_context,
@@ -89,7 +89,7 @@ def main():
     )
     parser.add_argument(
         "--doc_stride",
-        default=128,
+        default=500,
         type=int,
         help="When splitting up a long document into chunks, how much stride to take between chunks.",
     )
@@ -264,7 +264,7 @@ def main():
     train_examples = None
     num_train_optimization_steps = None
     if args.do_train:
-        train_examples = read_squad_examples(
+        train_examples = read_data_examples(
             input_file=args.train_file, is_training=True
         )
         num_train_optimization_steps = (
@@ -436,7 +436,7 @@ def main():
     model.to(device)
 
     if args.do_predict and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
-        eval_examples = read_squad_examples(
+        eval_examples = read_data_examples(
             input_file=args.predict_file, is_training=False,
         )
         eval_features = convert_examples_to_features(

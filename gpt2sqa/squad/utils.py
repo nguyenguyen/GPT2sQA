@@ -12,7 +12,7 @@ from gpt2sqa.tokenization import whitespace_tokenize, BasicTokenizer
 logger = logging.getLogger(__name__)
 
 
-def read_squad_examples(input_file, is_training, version_2_with_negative=False):
+def read_data_examples(input_file, is_training):
     """Read a SQuAD json file into a list of SquadExample."""
     with open(input_file, "r", encoding="utf-8") as reader:
         input_data = json.load(reader)["data"]
@@ -43,58 +43,19 @@ def read_squad_examples(input_file, is_training, version_2_with_negative=False):
             for qa in paragraph["qas"]:
                 qas_id = qa["id"]
                 question_text = qa["question"]
-                start_position = None
-                end_position = None
                 orig_answer_text = None
                 is_impossible = False
                 if is_training:
-                    if version_2_with_negative:
-                        is_impossible = qa["is_impossible"]
-                    if (len(qa["answers"]) != 1) and (not is_impossible):
-                        raise ValueError(
-                            "For training, each question should have exactly 1 answer."
-                        )
-                    if not is_impossible:
-                        answer = qa["answers"][0]
-                        orig_answer_text = answer["text"]
-                        answer_offset = answer["answer_start"]
-                        answer_length = len(orig_answer_text)
-                        start_position = char_to_word_offset[answer_offset]
-                        end_position = char_to_word_offset[
-                            answer_offset + answer_length - 1
-                        ]
-                        # Only add answers where the text can be exactly recovered from the
-                        # document. If this CAN'T happen it's likely due to weird Unicode
-                        # stuff so we will just skip the example.
-                        #
-                        # Note that this means for training mode, every example is NOT
-                        # guaranteed to be preserved.
-                        actual_text = " ".join(
-                            doc_tokens[start_position : (end_position + 1)]
-                        )
-                        cleaned_answer_text = " ".join(
-                            whitespace_tokenize(orig_answer_text)
-                        )
-                        # if actual_text.find(cleaned_answer_text) == -1:
-                        #     logger.warning(
-                        #         "Could not find answer: '%s' vs. '%s'",
-                        #         actual_text,
-                        #         cleaned_answer_text,
-                        #     )
-                        #     continue
-                    else:
-                        start_position = -1
-                        end_position = -1
-                        orig_answer_text = ""
+                    if len(qa["answers"]) != 1:
+                        raise ValueError("For training, each question should have exactly 1 answer.")
+                    answer = qa["answers"][0]
+                    orig_answer_text = answer["text"]
 
                 example = SquadExample(
                     qas_id=qas_id,
                     question_text=question_text,
                     doc_tokens=doc_tokens,
                     orig_answer_text=orig_answer_text,
-                    start_position=start_position,
-                    end_position=end_position,
-                    is_impossible=is_impossible,
                 )
                 examples.append(example)
     return examples
@@ -126,25 +87,6 @@ def convert_examples_to_features(
             for sub_token in sub_tokens:
                 tok_to_orig_index.append(i)
                 all_doc_tokens.append(sub_token)
-
-        tok_start_position = None
-        tok_end_position = None
-        if is_training and example.is_impossible:
-            tok_start_position = -1
-            tok_end_position = -1
-        if is_training and not example.is_impossible:
-            tok_start_position = orig_to_tok_index[example.start_position]
-            if example.end_position < len(example.doc_tokens) - 1:
-                tok_end_position = orig_to_tok_index[example.end_position + 1] - 1
-            else:
-                tok_end_position = len(all_doc_tokens) - 1
-            (tok_start_position, tok_end_position) = _improve_answer_span(
-                all_doc_tokens,
-                tok_start_position,
-                tok_end_position,
-                tokenizer,
-                example.orig_answer_text,
-            )
 
         # The -3 accounts for [CLS], [SEP] and [SEP]
         max_tokens_for_doc = max_seq_length - len(query_tokens) - 3
@@ -208,42 +150,13 @@ def convert_examples_to_features(
             assert len(input_mask) == max_seq_length
             assert len(segment_ids) == max_seq_length
 
-            start_position = None
-            end_position = None
-            if is_training and not example.is_impossible:
-                # For training, if our document chunk does not contain an annotation
-                # we throw it out, since there is nothing to predict.
-                doc_start = doc_span.start
-                doc_end = doc_span.start + doc_span.length - 1
-                out_of_span = False
-                if not (
-                    tok_start_position >= doc_start and tok_end_position <= doc_end
-                ):
-                    out_of_span = True
-                if out_of_span:
-                    total_missed += 1
-                    start_position = 0
-                    end_position = 0
-                else:
-                    doc_offset = len(query_tokens) + 2
-                    start_position = tok_start_position - doc_start + doc_offset
-                    end_position = tok_end_position - doc_start + doc_offset
-            if is_training and example.is_impossible:
-                start_position = 0
-                end_position = 0
             if example_index < 20:
                 logger.info("*** Example ***")
                 logger.info("unique_id: %s" % (unique_id))
                 logger.info("example_index: %s" % (example_index))
                 logger.info("doc_span_index: %s" % (doc_span_index))
                 logger.info("tokens: %s" % " ".join(tokens))
-                if is_training and example.is_impossible:
-                    logger.info("impossible example")
-                if is_training and not example.is_impossible:
-                    answer_text = " ".join(tokens[start_position : (end_position + 1)])
-                    logger.info("start_position: %d" % (start_position))
-                    logger.info("end_position: %d" % (end_position))
-                    logger.info("answer: %s" % (answer_text))
+                logger.info("answer: %s" % (example.orig_answer_text))
 
             features.append(
                 InputFeatures(
@@ -256,9 +169,8 @@ def convert_examples_to_features(
                     input_ids=input_ids,
                     input_mask=input_mask,
                     segment_ids=segment_ids,
-                    start_position=start_position,
-                    end_position=end_position,
-                    is_impossible=example.is_impossible,
+                    start_position=None,
+                    end_position=None,
                 )
             )
             unique_id += 1
@@ -357,7 +269,6 @@ def write_predictions(
     output_nbest_file,
     output_null_log_odds_file,
     verbose_logging,
-    version_2_with_negative,
     null_score_diff_threshold,
 ):
     """Write final predictions to the json file and log-odds of null if needed."""
@@ -539,10 +450,6 @@ def write_predictions(
 
     with open(output_nbest_file, "w") as writer:
         writer.write(json.dumps(all_nbest_json, indent=4) + "\n")
-
-    if version_2_with_negative:
-        with open(output_null_log_odds_file, "w") as writer:
-            writer.write(json.dumps(scores_diff_json, indent=4) + "\n")
 
 
 def get_final_text(pred_text, orig_text, do_lower_case, verbose_logging=False):

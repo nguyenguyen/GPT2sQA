@@ -1,0 +1,4 @@
+./venv
+.idea/
+./gpt2sqa/__pycache__/*
+./gpt2sqa/gpt2/__pycache__
