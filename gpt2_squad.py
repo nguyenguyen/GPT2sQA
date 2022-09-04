@@ -392,6 +392,9 @@ def main():
                 if args.gradient_accumulation_steps > 1:
                     loss = loss / args.gradient_accumulation_steps
                 print(loss)
+                loss = loss.mean()
+                print("\n\n\n")
+                print(loss)
                 total_loss += loss.item()
 
                 loss.backward()
