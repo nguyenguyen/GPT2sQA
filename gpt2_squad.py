@@ -383,11 +383,9 @@ def main():
                     input_ids,
                     input_mask,
                     segment_ids,
-                    start_positions,
-                    end_positions,
                 ) = batch
                 loss = model(
-                    input_ids, segment_ids, input_mask, start_positions, end_positions
+                    input_ids, segment_ids, input_mask
                 )
                 if n_gpu > 1:
                     loss = loss.mean()  # mean() to average on multi-gpu.
