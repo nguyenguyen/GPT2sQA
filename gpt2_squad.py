@@ -388,6 +388,8 @@ def main():
                     input_ids, segment_ids, input_mask
                 )
                 print(dir(loss))
+                print("\n\n\n\n")
+                print(loss.__getattribute__)
                 if n_gpu > 1:
                     loss = loss.mean()  # mean() to average on multi-gpu.
                 if args.gradient_accumulation_steps > 1:
