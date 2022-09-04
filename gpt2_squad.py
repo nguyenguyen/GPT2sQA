@@ -391,6 +391,7 @@ def main():
                     loss = loss.mean()  # mean() to average on multi-gpu.
                 if args.gradient_accumulation_steps > 1:
                     loss = loss / args.gradient_accumulation_steps
+                print(loss)
                 total_loss += loss.item()
 
                 loss.backward()
