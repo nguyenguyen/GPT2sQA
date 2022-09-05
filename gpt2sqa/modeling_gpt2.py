@@ -66,7 +66,7 @@ class GPT2ModelForQuestionAnswering(GPT2PreTrainedModel):
     def __init__(self, config):
         super(GPT2ModelForQuestionAnswering, self).__init__(config)
         self.gpt2 = GPT2Model(config)
-        print(config)
+        # print(config)
         self.qa_outputs = nn.Linear(config.n_embd, 2)
         self.apply(self.init_weights)
 

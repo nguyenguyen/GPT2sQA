@@ -335,7 +335,7 @@ def main():
 
     global_step = 0
     if args.do_train:
-        convert_examples_to_features(
+        train_features = convert_examples_to_features(
             examples=train_examples,
             tokenizer=tokenizer,
             max_seq_length=args.max_seq_length,
@@ -343,73 +343,65 @@ def main():
             max_query_length=args.max_query_length,
             is_training=True,
         )
-        # train_features = convert_examples_to_features(
-        #     examples=train_examples,
-        #     tokenizer=tokenizer,
-        #     max_seq_length=args.max_seq_length,
-        #     doc_stride=args.doc_stride,
-        #     max_query_length=args.max_query_length,
-        #     is_training=True,
-        # )
-        # logger.info("***** Running training *****")
-        # logger.info("  Num orig examples = %d", len(train_examples))
-        # logger.info("  Num split examples = %d", len(train_features))
-        # logger.info("  Batch size = %d", args.train_batch_size)
-        # logger.info("  Num steps = %d", num_train_optimization_steps)
-        # all_input_ids = torch.tensor(
-        #     [f.input_ids for f in train_features], dtype=torch.long
-        # )
-        # all_input_mask = torch.tensor(
-        #     [f.input_mask for f in train_features], dtype=torch.long
-        # )
-        # all_segment_ids = torch.tensor(
-        #     [f.segment_ids for f in train_features], dtype=torch.long
-        # )
-        # train_data = TensorDataset(
-        #     all_input_ids,
-        #     all_input_mask,
-        #     all_segment_ids,
-        # )
-        # if args.local_rank == -1:
-        #     train_sampler = RandomSampler(train_data)
-        # else:
-        #     train_sampler = DistributedSampler(train_data)
-        # train_dataloader = DataLoader(
-        #     train_data, sampler=train_sampler, batch_size=args.train_batch_size
-        # )
-        #
-        # model.train()
-        # total_loss = 0
-        # pbar = tqdm(train_dataloader, disable=args.local_rank not in [-1, 0])
-        # for _ in trange(int(args.num_train_epochs), desc="Epoch"):
-        #     for step, batch in enumerate(pbar):
-        #         if n_gpu == 1:
-        #             batch = tuple(
-        #                 t.to(device) for t in batch
-        #             )  # multi-gpu does scattering it-self
-        #         (
-        #             input_ids,
-        #             input_mask,
-        #             segment_ids,
-        #         ) = batch
-        #         loss = model(
-        #             input_ids, segment_ids, input_mask
-        #         )
-        #         if n_gpu > 1:
-        #             loss = loss.mean()  # mean() to average on multi-gpu.
-        #         if args.gradient_accumulation_steps > 1:
-        #             loss = loss / args.gradient_accumulation_steps
-                # total_loss += loss
-                #
-                # loss.backward()
-                # pbar.update(1)
-                # if step % 10 == 0:
-                #     pbar.set_description(desc=f"loss:{np.mean(total_loss)}")
-                #     total_loss = 0
-                # if (step + 1) % args.gradient_accumulation_steps == 0:
-                #     optimizer.step()
-                #     optimizer.zero_grad()
-                #     global_step += 1
+        logger.info("***** Running training *****")
+        logger.info("  Num orig examples = %d", len(train_examples))
+        logger.info("  Num split examples = %d", len(train_features))
+        logger.info("  Batch size = %d", args.train_batch_size)
+        logger.info("  Num steps = %d", num_train_optimization_steps)
+        all_input_ids = torch.tensor(
+            [f.input_ids for f in train_features], dtype=torch.long
+        )
+        all_input_mask = torch.tensor(
+            [f.input_mask for f in train_features], dtype=torch.long
+        )
+        all_segment_ids = torch.tensor(
+            [f.segment_ids for f in train_features], dtype=torch.long
+        )
+        train_data = TensorDataset(
+            all_input_ids,
+            all_input_mask,
+            all_segment_ids,
+        )
+        if args.local_rank == -1:
+            train_sampler = RandomSampler(train_data)
+        else:
+            train_sampler = DistributedSampler(train_data)
+        train_dataloader = DataLoader(
+            train_data, sampler=train_sampler, batch_size=args.train_batch_size
+        )
+
+        model.train()
+        total_loss = 0
+        pbar = tqdm(train_dataloader, disable=args.local_rank not in [-1, 0])
+        for _ in trange(int(args.num_train_epochs), desc="Epoch"):
+            for step, batch in enumerate(pbar):
+                if n_gpu == 1:
+                    batch = tuple(
+                        t.to(device) for t in batch
+                    )  # multi-gpu does scattering it-self
+                (
+                    input_ids,
+                    input_mask,
+                    segment_ids,
+                ) = batch
+                loss = model(
+                    input_ids, segment_ids, input_mask
+                )
+                if n_gpu > 1:
+                    loss = loss.mean()  # mean() to average on multi-gpu.
+                if args.gradient_accumulation_steps > 1:
+                    loss = loss / args.gradient_accumulation_steps
+                total_loss += loss
+
+                loss.backward()
+                pbar.update(1)
+                if step % 10 == 0:
+                    pbar.set_description(desc=f"loss:{np.mean(total_loss)}")
+                    total_loss = 0
+                if (step + 1) % args.gradient_accumulation_steps == 0:
+                    optimizer.step()
+                    optimizer.zero_grad()
+                    global_step += 1
 
     if args.do_train and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
         # Save a trained model, configuration and tokenizer
