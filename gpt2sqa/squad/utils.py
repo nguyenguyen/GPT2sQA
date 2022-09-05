@@ -87,7 +87,7 @@ def convert_examples_to_features(
                 tok_to_orig_index.append(i)
                 all_doc_tokens.append(sub_token)
 
-        print(all_doc_tokens[0])
+        print(all_doc_tokens[-100:])
     #
     #     # The -3 accounts for [CLS], [SEP] and [SEP]
     #     max_tokens_for_doc = max_seq_length - len(query_tokens) - 3
