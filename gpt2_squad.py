@@ -259,7 +259,7 @@ def main():
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
 
-    tokenizer = GPT2Tokenizer.from_pretrained()
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
     train_examples = None
     num_train_optimization_steps = None
