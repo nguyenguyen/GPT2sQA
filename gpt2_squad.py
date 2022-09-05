@@ -391,17 +391,17 @@ def main():
                     loss = loss.mean()  # mean() to average on multi-gpu.
                 if args.gradient_accumulation_steps > 1:
                     loss = loss / args.gradient_accumulation_steps
-                total_loss += loss
-
-                loss.backward()
-                pbar.update(1)
-                if step % 10 == 0:
-                    pbar.set_description(desc=f"loss:{np.mean(total_loss)}")
-                    total_loss = 0
-                if (step + 1) % args.gradient_accumulation_steps == 0:
-                    optimizer.step()
-                    optimizer.zero_grad()
-                    global_step += 1
+                # total_loss += loss
+                #
+                # loss.backward()
+                # pbar.update(1)
+                # if step % 10 == 0:
+                #     pbar.set_description(desc=f"loss:{np.mean(total_loss)}")
+                #     total_loss = 0
+                # if (step + 1) % args.gradient_accumulation_steps == 0:
+                #     optimizer.step()
+                #     optimizer.zero_grad()
+                #     global_step += 1
 
     if args.do_train and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
         # Save a trained model, configuration and tokenizer

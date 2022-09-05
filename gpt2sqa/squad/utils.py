@@ -150,7 +150,7 @@ def convert_examples_to_features(
             assert len(input_mask) == max_seq_length
             assert len(segment_ids) == max_seq_length
 
-            if example_index < 20:
+            if example_index < 1:
                 logger.info("*** Example ***")
                 logger.info("unique_id: %s" % (unique_id))
                 logger.info("example_index: %s" % (example_index))
