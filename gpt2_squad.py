@@ -371,7 +371,7 @@ def main():
         )
 
         model.train()
-        total_loss = 0
+        # total_loss = 0
         pbar = tqdm(train_dataloader, disable=args.local_rank not in [-1, 0])
         for _ in trange(int(args.num_train_epochs), desc="Epoch"):
             for step, batch in enumerate(pbar):
@@ -391,7 +391,6 @@ def main():
                     loss = loss.mean()  # mean() to average on multi-gpu.
                 if args.gradient_accumulation_steps > 1:
                     loss = loss / args.gradient_accumulation_steps
-                # loss = loss[1]
                 total_loss += loss
 
                 loss.backward()

@@ -71,6 +71,7 @@ def convert_examples_to_features(
     print("Converting examples into features...")
 
     total_missed = 0
+    print(examples)
     for (example_index, example) in enumerate(tqdm(examples)):
         query_tokens = tokenizer.tokenize(example.question_text)
 
@@ -168,8 +169,6 @@ def convert_examples_to_features(
                     input_ids=input_ids,
                     input_mask=input_mask,
                     segment_ids=segment_ids,
-                    start_position=None,
-                    end_position=None,
                 )
             )
             unique_id += 1
