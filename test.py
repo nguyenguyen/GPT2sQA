@@ -268,7 +268,7 @@ def main():
             input_file=args.train_file, is_training=True
         )
 
-        convert_examples_to_features(
+        train_features = convert_examples_to_features(
             examples=train_examples,
             tokenizer=tokenizer,
             max_seq_length=args.max_seq_length,
