@@ -335,7 +335,7 @@ def main():
 
     global_step = 0
     if args.do_train:
-        train_features = convert_examples_to_features(
+        convert_examples_to_features(
             examples=train_examples,
             tokenizer=tokenizer,
             max_seq_length=args.max_seq_length,
@@ -343,6 +343,14 @@ def main():
             max_query_length=args.max_query_length,
             is_training=True,
         )
+        # train_features = convert_examples_to_features(
+        #     examples=train_examples,
+        #     tokenizer=tokenizer,
+        #     max_seq_length=args.max_seq_length,
+        #     doc_stride=args.doc_stride,
+        #     max_query_length=args.max_query_length,
+        #     is_training=True,
+        # )
         # logger.info("***** Running training *****")
         # logger.info("  Num orig examples = %d", len(train_examples))
         # logger.info("  Num split examples = %d", len(train_features))
