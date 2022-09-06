@@ -39,8 +39,8 @@ from tqdm import tqdm, trange
 from gpt2sqa.file_utils import PYTORCH_PRETRAINED_GPT2_CACHE, WEIGHTS_NAME, CONFIG_NAME
 from gpt2sqa.modeling_gpt2 import GPT2ModelForQuestionAnswering
 from gpt2sqa.optimization import GPT2Adam, WarmupLinearSchedule
-# from gpt2sqa.tokenization import GPT2Tokenizer
-from transformers import GPT2Tokenizer
+from gpt2sqa.tokenization import GPT2Tokenizer
+# from transformers import GPT2Tokenizer
 from gpt2sqa.squad.squad_example import InputFeatures
 from gpt2sqa.squad.utils import (
     convert_examples_to_features,
