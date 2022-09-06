@@ -72,27 +72,24 @@ def convert_examples_to_features(
     # print(examples)
     total_missed = 0
     for (example_index, example) in enumerate(tqdm(examples)):
-        print(example.question_text)
         query_tokens = tokenizer.tokenize(example.question_text)
-        print(query_tokens)
-        print("\n\n")
 
-        # if len(query_tokens) > max_query_length:
-        #     query_tokens = query_tokens[0:max_query_length]
-        #
-        # tok_to_orig_index = []
-        # orig_to_tok_index = []
-        # all_doc_tokens = []
-        # for (i, token) in enumerate(example.doc_tokens):
-        #     orig_to_tok_index.append(len(all_doc_tokens))
-        #     print(token)
-        #     sub_tokens = tokenizer.tokenize(token)
-        #     print(sub_tokens)
-        #     for sub_token in sub_tokens:
-        #         tok_to_orig_index.append(i)
-        #         all_doc_tokens.append(sub_token)
+        if len(query_tokens) > max_query_length:
+            query_tokens = query_tokens[0:max_query_length]
 
-        # print(all_doc_tokens[-100:])
+        tok_to_orig_index = []
+        orig_to_tok_index = []
+        all_doc_tokens = []
+        for (i, token) in enumerate(example.doc_tokens):
+            orig_to_tok_index.append(len(all_doc_tokens))
+            print(token)
+            sub_tokens = tokenizer.tokenize(token)
+            print(sub_tokens)
+            for sub_token in sub_tokens:
+                tok_to_orig_index.append(i)
+                all_doc_tokens.append(sub_token)
+
+        print(all_doc_tokens[-100:])
     #
     #     # The -3 accounts for [CLS], [SEP] and [SEP]
     #     max_tokens_for_doc = max_seq_length - len(query_tokens) - 3
