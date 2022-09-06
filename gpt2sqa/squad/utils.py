@@ -82,9 +82,7 @@ def convert_examples_to_features(
         all_doc_tokens = []
         for (i, token) in enumerate(example.doc_tokens):
             orig_to_tok_index.append(len(all_doc_tokens))
-            print(token)
             sub_tokens = tokenizer.tokenize(token)
-            print(sub_tokens)
             for sub_token in sub_tokens:
                 tok_to_orig_index.append(i)
                 all_doc_tokens.append(sub_token)
