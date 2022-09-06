@@ -255,6 +255,7 @@ class GPT2Tokenizer(object):
         bpe_tokens = []
         for token in re.findall(self.pat, text):
             bpe_tokens.extend(bpe_token for bpe_token in self.bpe(token).split(" "))
+        bpe_tokens = [token for token in bpe_tokens if token != ""]
         return bpe_tokens
 
     def convert_tokens_to_ids(self, tokens):
